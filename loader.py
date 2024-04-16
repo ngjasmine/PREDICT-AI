@@ -27,10 +27,13 @@ class MedicalDATA(object):
 		self.g.manual_seed(self.args.seed)
 
 		### Loading Drugs
-		drug_names = np.array(['5-FLUOROURACIL','CYCLOPHOSPHAMIDE','DOCETAXEL','GEMCITABINE','CISPLATIN','PACLITAXEL'])
-		drug_names_to_idx_map = dict(zip(drug_names,range(len(drug_names))))
-		drug_fp = pd.read_csv("../data/processed/drug_morgan_fingerprints.csv",index_col=0) #[408 rows x 2048 columns]
+		#drug_names = np.array(['5-FLUOROURACIL','CYCLOPHOSPHAMIDE','DOCETAXEL','GEMCITABINE','CISPLATIN','PACLITAXEL']) # This is an actual code line but commenting out due to KeyError: '5-FLUOROURACIL' [15 Apr 2024]
+		#drug_names_to_idx_map = dict(zip(drug_names,range(len(drug_names)))) # This is an actual code line but commenting out due to KeyError: '5-FLUOROURACIL' [15 Apr 2024]
+		drug_fp = pd.read_csv("../../../../data/hansheng/DruID/data/processed/drug_morgan_fingerprints.csv")#("../data/processed/drug_morgan_fingerprints.csv",index_col=0) #[408 rows x 2048 columns]
+		print("drug_fp len:", len(drug_fp)) # JN added
 		drug_names_fp = drug_fp.index.to_list() #408
+		print("drug_names_fp len:", len(drug_names_fp)) # JN added
+		print("drug_names_fp: ", drug_names_fp) # JN added
 
 		### Loading annotation
 		samples,gene324,annovar = self.load_annotation()
@@ -45,12 +48,16 @@ class MedicalDATA(object):
 		drug_samples = list(set(samples['drug_name'].to_list()))
 		drugs_notin_fp = [val for val in drug_samples if val not in drug_names_fp] #['ATEZOLIZUMAB','RAMUCIRUMAB','NIVOLUMAB','PEMBROLIZUMAB','5-Fluorouracil']
 		drugs_notin_fp_pd = pd.DataFrame(np.zeros((len(drugs_notin_fp),2048),dtype=int),index=drugs_notin_fp,columns=[str(i) for i in range(2048)])
+		print("drugs_notin_fp_pd: ", drugs_notin_fp_pd)
 		self.drugs_fp = pd.concat([drug_fp,drugs_notin_fp_pd],axis=0) #[413 rows x 2048 columns]
-		# print(self.drugs_fp)
-		self.drugs_fpval = torch.tensor(self.drugs_fp.values) #torch.Size([413, 2048])
+		print(self.drugs_fp) # This is a comment in OG code
+		print(self.drugs_fp.tail(20)) #JN added code
+		# print(type(self.drugs_fp)) JN ADDED CODE TO CHECK TYPE
+		# self.drugs_fpval = torch.tensor(self.drugs_fp.values) #torch.Size([413, 2048]) This is an actual code line but causing error [12 Apr 2024]
 
 		### MAP DRUGS to IDS
 		drugs = self.drugs_fp.index.tolist() #413
+		print("drugs: ", len(drugs)) # JN added code
 		self.drug2id = dict(zip(drugs, [i for i in range(len(drugs))]))
 		samples['drug_name'] = samples['drug_name'].apply(lambda x: self.drug2id[x]) #[20754 rows x 25 columns]
 		self.drugs_name = drugs
@@ -589,7 +596,7 @@ class CategoricalAnnotatedCellLineDatasetFilteredByDrug(CellLineDataset):
 		self.is_train = is_train
 		self.sample_id = sample_id
 		if xon17 == False:
-			self.df_reprn_mut = pd.read_csv("../data/processed/ccle_anno_features.csv",)
+			self.df_reprn_mut = pd.read_csv("../../../../data/hansheng/DruID/data/processed/ccle_anno_features.csv",) #("../data/processed/ccle_anno_features.csv",) JN updated file path
 		else:
 			raise("xon17 not implemented for ccle_anno_features.csv")
 		self.df_reprn_mut.set_index(["depmap_id"], inplace=True)
@@ -601,7 +608,7 @@ class CategoricalAnnotatedCellLineDatasetFilteredByDrug(CellLineDataset):
 
 		self.df_reprn_mut = self.df_reprn_mut[~mask].copy()
 
-		df_auc = pd.read_csv("../data/raw/cell_drug_auc_final_1111.csv")
+		df_auc = pd.read_csv("../../../../data/hansheng/DruID/data/raw/cell_drug_auc_final_1111.csv") #("../data/raw/cell_drug_auc_final_1111.csv") JN updated file path
 		df_auc["depmap_id"] = df_auc["ARXSPAN_ID"].astype("string")
 		df_auc.drop("ARXSPAN_ID", axis=1, inplace=True)
 		df_auc.set_index(["depmap_id"], inplace=True)
@@ -617,8 +624,8 @@ class CategoricalAnnotatedCellLineDatasetFilteredByDrug(CellLineDataset):
 		filtered_drugs = [col for col in df_auc.columns if col in list_drugs]
 		df_auc = df_auc[filtered_drugs]
 
-		train_cell_lines_ids = pd.read_csv(f"../data/raw/train_celllines_filtered4{filter_for}_drugs_sample{sample_id}.csv",header=None)[0].values
-		test_cell_lines_ids = pd.read_csv(f"../data/raw/test_celllines_filtered4{filter_for}_drugs_sample{sample_id}.csv",header=None)[0].values
+		train_cell_lines_ids = pd.read_csv(f"../../../../data/hansheng/DruID/data/raw/train_celllines_filtered4{filter_for}_drugs_sample{sample_id}.csv",header=None)[0].values #(f"../data/raw/train_celllines_filtered4{filter_for}_drugs_sample{sample_id}.csv",header=None)[0].values
+		test_cell_lines_ids = pd.read_csv(f"../../../../data/hansheng/DruID/data/raw/test_celllines_filtered4{filter_for}_drugs_sample{sample_id}.csv",header=None)[0].values #(f"../data/raw/test_celllines_filtered4{filter_for}_drugs_sample{sample_id}.csv",header=None)[0].values
 
 		if is_train is not None:
 			if self.is_train:
