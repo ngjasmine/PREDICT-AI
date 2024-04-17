@@ -11,6 +11,6 @@ dependencies:
       - pandas==2.2.2
       - torch==2.2.2
       - torchtext==0.17.2
-      - transformers=4.39.3
-      - lifelines=0.28.0
-      - shap=0.45.0
+      - transformers==4.39.3
+      - lifelines==0.28.0
+      - shap==0.45.0
